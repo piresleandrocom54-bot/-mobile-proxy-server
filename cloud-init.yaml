@@ -1,0 +1,32 @@
+#cloud-config
+# Cole este conteudo no campo "User data" / "Cloud-init" ao criar a VPS.
+# TROQUE o usuario e a senha abaixo antes de colar!
+package_update: true
+packages: [python3, ufw]
+write_files:
+  - path: /etc/mobile-proxy.env
+    permissions: "0600"
+    content: |
+      PORT=3030
+      PROXY_USER=meuusuario
+      PROXY_PASS=TroqueEstaSenhaForte123
+  - path: /etc/systemd/system/mobile-proxy.service
+    content: |
+      [Unit]
+      Description=Mobile Proxy Server
+      After=network-online.target
+      [Service]
+      EnvironmentFile=/etc/mobile-proxy.env
+      ExecStart=/usr/bin/python3 /opt/mobile-proxy/proxy.py
+      Restart=always
+      DynamicUser=yes
+      [Install]
+      WantedBy=multi-user.target
+runcmd:
+  - mkdir -p /opt/mobile-proxy
+  - curl -fsSL -o /opt/mobile-proxy/proxy.py "COLE_AQUI_A_URL_RAW_DO_SEU_proxy.py_NO_GITHUB"
+  - ufw allow 22/tcp
+  - ufw allow 3030/tcp
+  - ufw --force enable
+  - systemctl daemon-reload
+  - systemctl enable --now mobile-proxy
